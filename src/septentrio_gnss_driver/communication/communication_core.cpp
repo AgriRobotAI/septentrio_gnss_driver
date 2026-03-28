@@ -31,7 +31,9 @@
 #include <chrono>
 #include <filesystem>
 #include <fstream>
+#ifndef __QNX__
 #include <linux/serial.h>
+#endif
 
 // Boost includes
 #include <boost/regex.hpp>
@@ -254,12 +256,14 @@ namespace io {
                 std::make_unique<AsyncManager<SbfFileIo>>(node_, &telegramQueue_);
             break;
         }
+#ifndef __QNX__
         case device_type::PCAP_FILE:
         {
             manager_ =
                 std::make_unique<AsyncManager<PcapFileIo>>(node_, &telegramQueue_);
             break;
         }
+#endif
         default:
         {
             if (!client || settings_->configure_rx ||

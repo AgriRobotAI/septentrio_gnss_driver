@@ -17,16 +17,20 @@ set(WARNFLAGS "-Wall -Wextra -Wpedantic -Wcast-align -Wnon-virtual-dtor -Woverlo
 
 ## System dependencies are found with CMake's conventions
 find_package(Boost REQUIRED)
-LIST(APPEND CMAKE_MODULE_PATH "/usr/share/cmake/geographiclib")
+if(NOT CMAKE_SYSTEM_NAME STREQUAL "QNX")
+  LIST(APPEND CMAKE_MODULE_PATH "/usr/share/cmake/geographiclib")
+endif()
 find_package(GeographicLib REQUIRED)
 
-## For PCAP file handling
-find_library(libpcap_LIBRARIES pcap)
-if ("${libpcap_LIBRARIES}" STREQUAL "pcap-NOTFOUND")
-    set(libpcap_FOUND FALSE)
-else ()
-    set(libpcap_FOUND TRUE)
-endif ()
+## For PCAP file handling (not available on QNX)
+if(NOT CMAKE_SYSTEM_NAME STREQUAL "QNX")
+  find_library(libpcap_LIBRARIES pcap)
+  if ("${libpcap_LIBRARIES}" STREQUAL "pcap-NOTFOUND")
+      set(libpcap_FOUND FALSE)
+  else ()
+      set(libpcap_FOUND TRUE)
+  endif ()
+endif()
 
 find_package(ros_environment REQUIRED)
 
@@ -238,7 +242,6 @@ elseif(ament_cmake_FOUND)
   target_link_libraries(${library_name}
     boost_regex # ordering is important for regex https://stackoverflow.com/questions/17588440/cannot-link-boost-regex
     ${Boost_LIBRARIES}
-    pcap
     ${GeographicLib_LIBRARIES}
     ${diagnostic_msgs_TARGETS}
     ${geometry_msgs_TARGETS}
@@ -256,6 +259,9 @@ elseif(ament_cmake_FOUND)
     tf2_ros::static_transform_broadcaster_node
     tf2_ros::tf2_ros
   )
+  if(NOT CMAKE_SYSTEM_NAME STREQUAL "QNX")
+    target_link_libraries(${library_name} pcap)
+  endif()
 
   if(${rosidl_cmake_VERSION} VERSION_LESS 2.5.0)
     rosidl_target_interfaces(${library_name}

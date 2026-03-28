@@ -34,8 +34,10 @@
 #include <thread>
 
 // Linux
+#ifndef __QNX__
 #include <linux/input.h>
 #include <linux/serial.h>
+#endif
 
 // Boost
 #include <boost/asio.hpp>
@@ -43,8 +45,10 @@
 #include <boost/lambda/bind.hpp>
 #include <boost/lambda/lambda.hpp>
 
-// pcap
+// pcap (not available on QNX)
+#ifndef __QNX__
 #include <pcap.h>
+#endif
 
 // ROSaic
 #ifdef ROS2
@@ -434,12 +438,14 @@ namespace io {
                     boost::asio::serial_port_base::flow_control::none));
             }
 
-            // Set low latency
+            // Set low latency (Linux-specific, not available on QNX)
+#ifndef __QNX__
             int fd = stream_->native_handle();
             struct serial_struct serialInfo;
             ioctl(fd, TIOCGSERIAL, &serialInfo);
             serialInfo.flags |= ASYNC_LOW_LATENCY;
             ioctl(fd, TIOCSSERIAL, &serialInfo);
+#endif
 
             return setBaudrate();
         }
@@ -605,6 +611,7 @@ namespace io {
         std::unique_ptr<boost::asio::posix::stream_descriptor> stream_;
     };
 
+#ifndef __QNX__
     class PcapFileIo
     {
     public:
@@ -658,4 +665,5 @@ namespace io {
     public:
         std::unique_ptr<boost::asio::posix::stream_descriptor> stream_;
     };
+#endif // !__QNX__
 } // namespace io
