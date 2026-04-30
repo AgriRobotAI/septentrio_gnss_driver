@@ -290,7 +290,11 @@ elseif(ament_cmake_FOUND)
 
   # Export Targets
   ament_export_targets(${library_name} HAS_LIBRARY_TARGET)
-  ament_export_dependencies(${dependencies} rosidl_default_runtime)
+  if(CMAKE_SYSTEM_NAME STREQUAL "QNX")
+    ament_export_dependencies(${dependencies} rosidl_default_runtime GeographicLib)
+  else()
+    ament_export_dependencies(${dependencies} rosidl_default_runtime)
+  endif()
 
   # Installation
   install(TARGETS
